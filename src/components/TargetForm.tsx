@@ -30,6 +30,7 @@ import LeaderCombobox from './LeaderCombobox';
 import OperatorCombobox from './OperatorCombobox';
 import FormCombobox from './FormCombobox';
 import { useGetStyles } from '@/api/getStyles';
+import { useGetSizes } from '@/api/getSizes';
 import {
   InputGroup,
   InputGroupAddon,
@@ -69,6 +70,38 @@ const formSchema = z.object({
         seen.add(prc);
       });
     }),
+  sizes: z
+    .array(
+      z.object({
+        size: z
+          .string()
+          .min(1, 'Size wajib diisi.')
+          .transform((value) => value.trim().toUpperCase()),
+        molding: z
+          .number({ error: 'Isi molding wajib diisi.' })
+          .int('Isi molding harus bilangan bulat.')
+          .min(1, 'Isi molding minimal 1.'),
+      }),
+    )
+    .min(1, 'Minimal satu size.')
+    .superRefine((items, ctx) => {
+      const seen = new Set<string>();
+
+      items.forEach(({ size }, index) => {
+        if (!size) return;
+
+        if (seen.has(size)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [index, 'size'],
+            message: 'Size ini sudah dipilih.',
+          });
+          return;
+        }
+
+        seen.add(size);
+      });
+    }),
   workingHour: z
     .number({ error: 'Jam kerja wajib diisi.' })
     .int('Jam kerja harus bilangan bulat.')
@@ -82,13 +115,20 @@ const formSchema = z.object({
     .number({ error: 'Target wajib diisi.' })
     .int('Target harus bilangan bulat.')
     .min(1, 'Target minimal 1.'),
-}) satisfies z.ZodType<Omit<TargetFormData, 'style' | 'prcs' | 'parts'>>;
+}) satisfies z.ZodType<
+  Omit<TargetFormData, 'style' | 'prcs' | 'parts' | 'sizes' | 'moldings'>
+>;
 
 type FormValues = z.infer<typeof formSchema>;
 
 function comparePrc(a: string, b: string) {
   return a.localeCompare(b, undefined, { numeric: true });
 }
+
+const EMPTY_SIZE = {
+  size: '',
+  molding: undefined as unknown as number,
+};
 
 export default function TargetForm() {
   const formId = useId();
@@ -99,6 +139,11 @@ export default function TargetForm() {
     isFetching: isStylesFetching,
     refetch: refetchStyles,
   } = useGetStyles();
+  const {
+    data: sizeGroup,
+    isPending: isSizesPending,
+    isError: isSizesError,
+  } = useGetSizes();
   const { mutateAsync, isPending } = useAddTarget();
 
   const form = useForm<FormValues>({
@@ -107,6 +152,7 @@ export default function TargetForm() {
       line: '',
       spo: '',
       prcs: [{ prc: '' }],
+      sizes: [{ ...EMPTY_SIZE }],
       shift: undefined,
       workingHour: undefined,
       leader: '',
@@ -120,8 +166,19 @@ export default function TargetForm() {
     name: 'prcs',
   });
 
+  const {
+    fields: sizeFields,
+    append: appendSize,
+    remove: removeSize,
+    replace: replaceSizes,
+  } = useFieldArray({
+    control: form.control,
+    name: 'sizes',
+  });
+
   const selectedSpo = useWatch({ control: form.control, name: 'spo' });
   const selectedPrcs = useWatch({ control: form.control, name: 'prcs' });
+  const selectedSizes = useWatch({ control: form.control, name: 'sizes' });
   const selectedStyle = selectedSpo
     ? (styleGroup?.[selectedSpo]?.style ?? '')
     : '';
@@ -130,8 +187,14 @@ export default function TargetForm() {
   const prcOptions = selectedSpo
     ? Object.keys(styleGroup?.[selectedSpo]?.parts ?? {}).sort(comparePrc)
     : [];
+  const sizeOptions = selectedSpo ? (sizeGroup?.[selectedSpo] ?? []) : [];
   const selectedPrcValues = new Set(
     (selectedPrcs ?? []).map(({ prc }) => prc).filter(Boolean),
+  );
+  const selectedSizeValues = new Set(
+    (selectedSizes ?? [])
+      .map(({ size }) => size?.trim().toUpperCase() ?? '')
+      .filter(Boolean),
   );
 
   function getPart(prc: string) {
@@ -163,7 +226,7 @@ export default function TargetForm() {
 
     if (hasMissingPart) return;
 
-    const { prcs, ...rest } = values;
+    const { prcs, sizes, ...rest } = values;
     const sortedPrcs = [...prcs].sort((a, b) => comparePrc(a.prc, b.prc));
 
     toast.promise(
@@ -172,6 +235,8 @@ export default function TargetForm() {
         style,
         prcs: sortedPrcs.map(({ prc }) => prc),
         parts: sortedPrcs.map(({ prc }) => styleParts[prc]),
+        sizes: sizes.map(({ size }) => size.toUpperCase()),
+        moldings: sizes.map(({ molding }) => molding),
       }),
       {
         loading: 'Menambahkan data target...',
@@ -300,7 +365,9 @@ export default function TargetForm() {
                       onValueChange={(spo) => {
                         field.onChange(spo);
                         replace([{ prc: '' }]);
+                        replaceSizes([{ ...EMPTY_SIZE }]);
                         form.clearErrors('prcs');
+                        form.clearErrors('sizes');
                       }}
                       isPending={isStylesPending}
                       isError={isStylesError}
@@ -452,6 +519,150 @@ export default function TargetForm() {
                 >
                   <PlusIcon />
                   Tambah PRC
+                </Button>
+              </FieldGroup>
+            </FieldSet>
+
+            <FieldSet className="gap-3">
+              <FieldLegend variant="label">Size & Isi Molding</FieldLegend>
+              <FieldDescription>
+                Tambahkan pasangan size dan isi molding.
+              </FieldDescription>
+              <FieldGroup className="gap-2">
+                {sizeFields.map((item, index) => {
+                  const currentSize = selectedSizes?.[index]?.size ?? '';
+                  const rowSizeOptions = sizeOptions.filter(
+                    (option) =>
+                      option === currentSize ||
+                      !selectedSizeValues.has(option.toUpperCase()),
+                  );
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-2"
+                    >
+                      <Controller
+                        name={`sizes.${index}.size`}
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel
+                              htmlFor={`${formId}-size-${index}`}
+                              className="sr-only"
+                            >
+                              Size {index + 1}
+                            </FieldLabel>
+                            {sizeOptions.length === 0 ? (
+                              <Input
+                                {...field}
+                                id={`${formId}-size-${index}`}
+                                value={field.value ?? ''}
+                                onChange={(event) =>
+                                  field.onChange(
+                                    event.target.value.toUpperCase(),
+                                  )
+                                }
+                                className="uppercase placeholder:normal-case"
+                                aria-invalid={fieldState.invalid}
+                                placeholder={
+                                  !selectedSpo
+                                    ? 'Pilih SPO dahulu'
+                                    : 'Ketik size manual'
+                                }
+                                disabled={!selectedSpo}
+                                autoComplete="off"
+                              />
+                            ) : (
+                              <FormCombobox
+                                id={`${formId}-size-${index}`}
+                                placeholder="Pilih size"
+                                items={rowSizeOptions}
+                                name={field.name}
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                aria-invalid={fieldState.invalid}
+                                disabled={!selectedSpo}
+                                isPending={isSizesPending}
+                                isError={isSizesError}
+                              />
+                            )}
+                            {fieldState.invalid && (
+                              <FieldError errors={[fieldState.error]} />
+                            )}
+                          </Field>
+                        )}
+                      />
+
+                      <Controller
+                        name={`sizes.${index}.molding`}
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel
+                              htmlFor={`${formId}-molding-${index}`}
+                              className="sr-only"
+                            >
+                              Isi Molding {index + 1}
+                            </FieldLabel>
+                            <InputGroup>
+                              <InputGroupInput
+                                {...field}
+                                id={`${formId}-molding-${index}`}
+                                value={field.value ?? ''}
+                                onChange={(event) => {
+                                  const value = event.target.valueAsNumber;
+                                  field.onChange(
+                                    Number.isNaN(value) ? undefined : value,
+                                  );
+                                }}
+                                type="number"
+                                min={1}
+                                step={1}
+                                inputMode="numeric"
+                                placeholder="Ketik isi molding, contoh: 2"
+                                autoComplete="off"
+                                aria-invalid={fieldState.invalid}
+                                disabled={!selectedSpo}
+                              />
+                              {sizeFields.length > 1 && (
+                                <InputGroupAddon align="inline-end">
+                                  <InputGroupButton
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon-xs"
+                                    onClick={() => removeSize(index)}
+                                    aria-label={`Hapus size ${index + 1}`}
+                                  >
+                                    <Trash2Icon />
+                                  </InputGroupButton>
+                                </InputGroupAddon>
+                              )}
+                            </InputGroup>
+                            {fieldState.invalid && (
+                              <FieldError errors={[fieldState.error]} />
+                            )}
+                          </Field>
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => appendSize({ ...EMPTY_SIZE })}
+                  disabled={
+                    !selectedSpo ||
+                    (sizeOptions.length > 0 &&
+                      sizeFields.length >= sizeOptions.length)
+                  }
+                >
+                  <PlusIcon />
+                  Tambah Size
                 </Button>
               </FieldGroup>
             </FieldSet>

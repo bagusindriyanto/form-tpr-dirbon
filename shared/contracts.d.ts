@@ -49,6 +49,8 @@ export type Target = {
   leader: Leader['nip'];
   operators: Operator['nip'][];
   target: number;
+  sizes: string[];
+  moldings: number[];
 };
 
 export type StyleGroup = Record<string, Style>;
