@@ -1,25 +1,25 @@
 const SPREADSHEET_CONFIG = {
   database: {
-    spreadsheetId: '1AtRp3wCRilR-WYhpbL7MC2-thMHI2O-plKObyQB0p7A',
+    spreadsheetId: "1zDjzPMYHqOkwnZ0EkQ1ovEzZOX51OBoiafNFm7ov_Mg", //1AtRp3wCRilR-WYhpbL7MC2-thMHI2O-plKObyQB0p7A
     sheetNames: {
-      member: 'Operator',
-      target: 'Target',
-      output: 'Output',
-      spoAndSize: 'SPO dan Size',
+      member: "Operator",
+      target: "Target",
+      output: "Output",
+      spoAndSize: "SPO dan Size",
     },
   },
   lkh: {
-    spreadsheetId: '1Z5k7RuMQa-zlJr8dk2eUQ5NlVlpkDJCtMAk5HPoJeJE',
+    spreadsheetId: "1spWlhe7vPgOzQFPJeabCaBMa8euxHWR1_kYKzWpxp4w", //1Z5k7RuMQa-zlJr8dk2eUQ5NlVlpkDJCtMAk5HPoJeJE
     sheetNames: {
-      dirbon: '[Trial] OUTPUT DIRBON/JAM',
-      tpr: '[Trial] Output TPR/Jam',
-      spoAndPrc: 'Daftar SPOPRC',
+      dirbon: "[Trial] OUTPUT DIRBON/JAM",
+      tpr: "[Trial] Output TPR/Jam",
+      spoAndPrc: "Daftar SPOPRC",
     },
   },
   tprDirbon: {
-    spreadsheetId: '1ky7rSxy20KQJ3zcZw0mVY4qE48G6CKAjAbb3zybEmKk',
+    spreadsheetId: "1t7IGaII6O-uvGXXZImQE8gxnXgXq2i0flef4YPuLxo8", //1ky7rSxy20KQJ3zcZw0mVY4qE48G6CKAjAbb3zybEmKk
     sheetNames: {
-      kanban: 'Kanban',
+      kanban: "Kanban",
     },
   },
 } as const satisfies Record<string, SpreadsheetConfig>;
