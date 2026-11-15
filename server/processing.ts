@@ -211,7 +211,7 @@ function createJobBlocksDirbon(
   for (const job of jobs) {
     const jobRows: number[] = [];
 
-    for (const operator of operators) {
+    for (const [operatorIndex, operator] of operators.entries()) {
       const currentRow = writeRow + rowOffset;
 
       data.push([
@@ -233,7 +233,7 @@ function createJobBlocksDirbon(
         job.prcs,
         job.parts,
         job.size,
-        molding,
+        operatorIndex === 0 ? molding : "",
       ]);
 
       jobRows.push(currentRow);
@@ -252,9 +252,9 @@ function createJobBlocksDirbon(
   sheet.insertRowsBefore(writeRow, totalRows);
   sheet.getRange(writeRow, 1, data.length, 19).setValues(data);
   sheet
-    .getRange(writeRow - 1, 32, 1, 24)
+    .getRange(writeRow - 1, 32, 1, 25)
     .copyTo(
-      sheet.getRange(writeRow, 32, totalRows, 24),
+      sheet.getRange(writeRow, 32, totalRows, 25),
       SpreadsheetApp.CopyPasteType.PASTE_FORMULA,
       false,
     );
@@ -286,7 +286,7 @@ function createJobBlocksTPR(
   for (const job of jobs) {
     const jobRows: number[] = [];
 
-    for (const operator of operators) {
+    for (const [operatorIndex, operator] of operators.entries()) {
       const currentRow = writeRow + rowOffset;
 
       data.push([
@@ -307,7 +307,7 @@ function createJobBlocksTPR(
         job.prcs,
         job.parts,
         job.size,
-        molding,
+        operatorIndex === 0 ? molding : "",
       ]);
 
       jobRows.push(currentRow);
@@ -326,9 +326,9 @@ function createJobBlocksTPR(
   sheet.insertRowsBefore(writeRow, totalRows);
   sheet.getRange(writeRow, 1, data.length, 18).setValues(data);
   sheet
-    .getRange(writeRow - 1, 30, 1, 14)
+    .getRange(writeRow - 1, 30, 1, 15)
     .copyTo(
-      sheet.getRange(writeRow, 30, totalRows, 14),
+      sheet.getRange(writeRow, 30, totalRows, 15),
       SpreadsheetApp.CopyPasteType.PASTE_FORMULA,
       false,
     );
