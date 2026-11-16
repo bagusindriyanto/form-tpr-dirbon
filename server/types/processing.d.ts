@@ -1,6 +1,6 @@
 type OutputKey = Pick<
   OutputFormData,
-  "line" | "shift" | "spo" | "prcs" | "size"
+  'line' | 'shift' | 'spo' | 'prcs' | 'size'
 >;
 
 type MatchedTarget = {
@@ -16,8 +16,8 @@ type MatchedTarget = {
   molding: number;
   mp: number;
   jk: number;
-  leader: Leader["name"];
-  operators: Operator["nip"][];
+  leader: Leader['name'];
+  operators: Operator['nip'][];
   target: number;
 };
 

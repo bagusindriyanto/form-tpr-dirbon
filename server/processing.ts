@@ -31,7 +31,7 @@ function getTarget(
       sameDate(row[1], recordDate) &&
       toString(row[3]) === shift &&
       toString(row[4]) === spo &&
-      toString(row[6]) === prcs.join(", ") &&
+      toString(row[6]) === prcs.join(', ') &&
       toString(row[8]) === size,
   );
 
@@ -42,7 +42,7 @@ function getTarget(
   const leaderNameMap = new Map(
     leaders.map((leader) => [
       leader.nip,
-      leader.name.split(" ")[0].toUpperCase(),
+      leader.name.split(' ')[0].toUpperCase(),
     ]),
   );
 
@@ -54,18 +54,18 @@ function getTarget(
     spo: toString(row[4]),
     style: toString(row[5]),
     prcs: toString(row[6])
-      .split(",")
+      .split(',')
       .map((x) => x.trim()),
     parts: toString(row[7])
-      .split(",")
+      .split(',')
       .map((x) => x.trim()),
     size: toString(row[8]),
     molding: toNumber(row[9]),
     mp: toNumber(row[10]),
     jk: toNumber(row[11]),
-    leader: leaderNameMap.get(toString(row[12])) || "",
+    leader: leaderNameMap.get(toString(row[12])) || '',
     operators: toString(row[13])
-      .split(",")
+      .split(',')
       .map((x) => x.trim()),
     target: toNumber(row[14]),
   };
@@ -82,7 +82,7 @@ function getJobInsertRow(
   const lastRow = sheet.getLastRow();
 
   if (lastRow < startRow) return startRow;
-  const groupId = [toDateSerial(job.tanggal), job.shift, job.line].join("-");
+  const groupId = [toDateSerial(job.tanggal), job.shift, job.line].join('-');
 
   const matches = sheet
     .getRange(startRow, helperCol + 1, lastRow - startRow + 1, 1)
@@ -109,7 +109,7 @@ function getNextLKHRow(
 
   const matches = sheet
     .getRange(startRow, 1, lastRow - startRow + 1, 1)
-    .createTextFinder(".+")
+    .createTextFinder('.+')
     .useRegularExpression(true)
     .findAll();
 
@@ -120,7 +120,7 @@ function getNextLKHRow(
   return matches[matches.length - 1].getRow() + 1;
 }
 
-function buildJobId(job: Job, firstOperatorNip: Operator["nip"]): string {
+function buildJobId(job: Job, firstOperatorNip: Operator['nip']): string {
   return [
     toDateSerial(job.tanggal),
     job.shift,
@@ -132,7 +132,7 @@ function buildJobId(job: Job, firstOperatorNip: Operator["nip"]): string {
     firstOperatorNip,
   ]
     .map((value) => String(value).trim())
-    .join("-");
+    .join('-');
 }
 
 function mergeJobSize(
@@ -140,18 +140,18 @@ function mergeJobSize(
   jobRows: number[],
   sizeCol: number,
   newSize: string,
-  mp: MatchedTarget["mp"],
+  mp: MatchedTarget['mp'],
 ) {
-  const incoming = String(newSize ?? "").trim();
+  const incoming = String(newSize ?? '').trim();
   if (!incoming || !jobRows.length) return;
 
   const firstRow = jobRows[0];
   const current = String(
-    sheet.getRange(firstRow, sizeCol).getValue() ?? "",
+    sheet.getRange(firstRow, sizeCol).getValue() ?? '',
   ).trim();
   const sizes = current
     ? current
-        .split(",")
+        .split(',')
         .map((s) => s.trim())
         .filter(Boolean)
     : [];
@@ -159,7 +159,7 @@ function mergeJobSize(
   if (sizes.includes(incoming)) return; // sudah ada, tidak perlu menulis
 
   sizes.push(incoming);
-  const merged = sizes.join(", "); // "L, M"
+  const merged = sizes.join(', '); // "L, M"
 
   sheet.getRange(firstRow, sizeCol, mp, 1).setValue(merged);
 }
@@ -191,7 +191,7 @@ function createJobBlocksDirbon(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
   target: MatchedTarget,
   jobs: Job[],
-  { startRow, helperCol }: Pick<LKHConfig, "startRow" | "helperCol">,
+  { startRow, helperCol }: Pick<LKHConfig, 'startRow' | 'helperCol'>,
 ): JobBlock[] {
   if (!jobs.length) return [];
   const { operators, leader, mp, molding } = target;
@@ -229,11 +229,11 @@ function createJobBlocksDirbon(
         job.style,
         `=IFERROR(VLOOKUP(K${currentRow};'DATABASE SPO (KODE STYLE)'!$C:$F;4;FALSE);"")`,
         `=MID(L${currentRow};FIND("-";L${currentRow})+1;FIND(CHAR(160);SUBSTITUTE(L${currentRow};"-";CHAR(160);2))-1-FIND("-";L${currentRow}))`,
-        "",
+        '',
         job.prcs,
         job.parts,
         job.size,
-        operatorIndex === 0 ? molding : "",
+        operatorIndex === 0 ? molding : '',
       ]);
 
       jobRows.push(currentRow);
@@ -266,7 +266,7 @@ function createJobBlocksTPR(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
   target: MatchedTarget,
   jobs: Job[],
-  { startRow, helperCol }: Pick<LKHConfig, "startRow" | "helperCol">,
+  { startRow, helperCol }: Pick<LKHConfig, 'startRow' | 'helperCol'>,
 ): JobBlock[] {
   if (!jobs.length) return [];
   const { operators, leader, molding } = target;
@@ -303,11 +303,11 @@ function createJobBlocksTPR(
         job.style,
         `=XLOOKUP(J${currentRow};'DATABASE SPO (KODE STYLE)'!C:C;'DATABASE SPO (KODE STYLE)'!F:F;"NOT FOUND")`,
         `=MID(K${currentRow};FIND("-";K${currentRow})+1;FIND(CHAR(160);SUBSTITUTE(K${currentRow};"-";CHAR(160);2))-1-FIND("-";K${currentRow}))`,
-        "",
+        '',
         job.prcs,
         job.parts,
         job.size,
-        operatorIndex === 0 ? molding : "",
+        operatorIndex === 0 ? molding : '',
       ]);
 
       jobRows.push(currentRow);
@@ -360,7 +360,7 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
 
   // Target
   const target = getTarget(formData, recordDate);
-  lap("get Target");
+  lap('get Target');
   if (!target) {
     throw new Error(
       `Target untuk SPO ${spo} line ${line} shift ${shift}  tanggal ${toDateString(recordDate)} tidak ditemukan`,
@@ -375,10 +375,10 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
   const sheet =
     SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
   if (!sheet) throw new Error(`Sheet '${sheetName}' tidak ditemukan`);
-  lap("load LKH");
+  lap('load LKH');
 
   // Jobs
-  const normalizedLine = line.replace(/^([A-Z])0+/, "$1");
+  const normalizedLine = line.replace(/^([A-Z])0+/, '$1');
   const jobs = prcs.map((prc, i) => ({
     tanggal: recordDate,
     shift,
@@ -392,7 +392,7 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
   }));
   const firstOperatorNip = target.operators[0];
   const jobIds = jobs.map((job) => buildJobId(job, firstOperatorNip));
-  lap("mapping Job dan Id");
+  lap('mapping Job dan Id');
 
   // Cari job yang sudah ada, sisanya dibuat baru
   const jobResults: JobBlock[] = [];
@@ -405,7 +405,7 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
     config.startRow,
     config.helperCol,
   );
-  lap("find Job Rows");
+  lap('find Job Rows');
 
   foundJobs.forEach((result) => {
     if (result.rows.length) {
@@ -421,11 +421,11 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
       newJobs.push(result.job);
     }
   });
-  lap("merge size");
+  lap('merge size');
 
   if (newJobs.length) {
     jobResults.push(...config.createBlocks(sheet, target, newJobs, config));
-    lap("create Job Block");
+    lap('create Job Block');
   }
 
   // Tulis output jam
@@ -439,6 +439,6 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
     );
     sheet.getRangeList(ranges).setValue(currentValue + actualValue);
   }
-  lap("set value");
+  lap('set value');
   Logger.log(`Waktu Total: ${Date.now() - startExecution} ms`);
 }
