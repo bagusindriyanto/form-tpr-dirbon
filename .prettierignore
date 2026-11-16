@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-ssr
+pnpm-lock.yaml
+.clasp.json
+.clasprc.json
+*.local
