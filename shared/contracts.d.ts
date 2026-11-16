@@ -44,13 +44,13 @@ export type Target = {
   style: string;
   prcs: string[];
   parts: string[];
+  size: string;
+  molding: number;
   manPower: number;
   workingHour: number;
   leader: Leader['nip'];
   operators: Operator['nip'][];
   target: number;
-  sizes: string[];
-  moldings: number[];
 };
 
 export type StyleGroup = Record<string, Style>;

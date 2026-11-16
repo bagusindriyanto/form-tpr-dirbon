@@ -503,6 +503,7 @@ export default function OutputForm() {
                           : 'Ketik size secara manual'
                       }
                       disabled={!selectedSpo}
+                      autoComplete="off"
                     />
                   ) : (
                     <FormCombobox
