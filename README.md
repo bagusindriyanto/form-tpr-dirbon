@@ -76,6 +76,20 @@ pnpm push
 
 Push mengganti isi project Apps Script dengan hasil build. Pastikan Script ID mengarah ke project yang memang akan dikelola starter ini. Jangan mengedit file dalam `dist/`: build berikutnya akan menggantinya. `clasp pull` mengambil kode hasil kompilasi ke `dist/`, tanpa mengubahnya kembali menjadi TypeScript.
 
+## Environment development dan production
+
+Project development dan production memakai Script ID berbeda, sehingga masing-masing memiliki **Script Properties** sendiri. `server/constants.ts` membaca ID spreadsheet dari property berikut:
+
+| Property                    | Spreadsheet                                       |
+| --------------------------- | ------------------------------------------------- |
+| `DATABASE_SPREADSHEET_ID`   | Database (Operator, Target, Output, SPO dan Size) |
+| `LKH_SPREADSHEET_ID`        | LKH (Dirbon, TPR, Daftar SPOPRC)                  |
+| `TPR_DIRBON_SPREADSHEET_ID` | Kanban TPR/Dirbon                                 |
+
+Buka **Project Settings > Script Properties** pada tiap project Apps Script dan isi ketiga property tersebut. ID di `server/constants.ts` hanyalah fallback jika property belum diisi, jadi jangan biarkan satu project pun kosong agar environment tidak ambigu. Script Properties tidak ikut terkirim oleh `clasp push` dan tidak berpindah antar project.
+
+Setelah push, jalankan `checkSpreadsheetEnvironment` dari editor Apps Script dan periksa log: pastikan ketiga ID sesuai dengan spreadsheet yang diharapkan untuk project tersebut.
+
 ## Menulis backend
 
 Definisikan fungsi bernama di file mana pun dalam `server/`:
