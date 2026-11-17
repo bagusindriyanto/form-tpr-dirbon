@@ -18,11 +18,11 @@ export default function TargetFormDialog() {
         }
       >
         <TargetIcon />
-        Update Target
+        Tambah Target
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Form Update Target</DialogTitle>
+          <DialogTitle>Form Tambah Target</DialogTitle>
         </DialogHeader>
         <TargetForm />
       </DialogContent>

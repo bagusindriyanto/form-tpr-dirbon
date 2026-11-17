@@ -18,11 +18,11 @@ export default function OutputFormDialog() {
         }
       >
         <SquarePlusIcon />
-        Update Output
+        Tambah Output
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Form Update Output</DialogTitle>
+          <DialogTitle>Form Tambah Output</DialogTitle>
         </DialogHeader>
         <OutputForm />
       </DialogContent>
