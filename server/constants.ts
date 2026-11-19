@@ -6,6 +6,7 @@ const SPREADSHEET_ID_PROPERTIES = {
   database: 'DATABASE_SPREADSHEET_ID',
   lkh: 'LKH_SPREADSHEET_ID',
   tprDirbon: 'TPR_DIRBON_SPREADSHEET_ID',
+  logging: 'LOGGING_SPREADSHEET_ID',
 } as const;
 
 type SpreadsheetArea = keyof typeof SPREADSHEET_ID_PROPERTIES;
@@ -50,7 +51,16 @@ const SPREADSHEET_CONFIG = {
       kanban: 'Kanban',
     },
   },
-} as const satisfies Record<string, SpreadsheetConfig>;
+  logging: {
+    spreadsheetId: getSpreadsheetId(
+      'logging',
+      '1eugWu3PvkpLayisCDqC93j3cp74C33FGi75Iqw-zBOk',
+    ),
+    sheetNames: {
+      errorLog: 'Log Error',
+    },
+  },
+} as const satisfies Record<SpreadsheetArea, SpreadsheetConfig>;
 
 const LKH_SHEETS = {
   dirbon: {
@@ -76,13 +86,15 @@ const LKH_SHEETS = {
  * membaca spreadsheet yang benar sebelum testing atau deploy.
  */
 function checkSpreadsheetEnvironment(): void {
-  const areas: SpreadsheetArea[] = ['database', 'lkh', 'tprDirbon'];
+  const areas: SpreadsheetArea[] = Object.keys(
+    SPREADSHEET_ID_PROPERTIES,
+  ) as SpreadsheetArea[];
   const properties = PropertiesService.getScriptProperties();
 
   for (const area of areas) {
     const property = SPREADSHEET_ID_PROPERTIES[area];
     const source = properties.getProperty(property) ? property : 'fallback';
-    Logger.log(
+    console.log(
       `${area}: ${SPREADSHEET_CONFIG[area].spreadsheetId} (${source})`,
     );
 
@@ -97,11 +109,11 @@ function checkSpreadsheetEnvironment(): void {
         (name) => !spreadsheet.getSheetByName(name),
       );
 
-      Logger.log(`  nama file: ${spreadsheet.getName()}`);
+      console.log(`  nama file: ${spreadsheet.getName()}`);
       if (missingSheets.length)
-        Logger.log(`  sheet tidak ditemukan: ${missingSheets.join(', ')}`);
+        console.log(`  sheet tidak ditemukan: ${missingSheets.join(', ')}`);
     } catch (error) {
-      Logger.log(`  gagal dibuka: ${errorMessage(error)}`);
+      console.error(`  gagal dibuka: ${errorMessage(error)}`);
     }
   }
 }

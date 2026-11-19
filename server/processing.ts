@@ -354,7 +354,7 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
   let t = startExecution;
   const lap = (label: string) => {
     const now = Date.now();
-    Logger.log(`Waktu ${label}: ${now - t} ms`);
+    console.log(`Waktu ${label}: ${now - t} ms`);
     t = now;
   };
 
@@ -363,7 +363,7 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
   lap('get Target');
   if (!target) {
     throw new Error(
-      `Target untuk SPO ${spo} line ${line} shift ${shift}  tanggal ${toDateString(recordDate)} tidak ditemukan`,
+      `Target untuk Tanggal ${toDateString(recordDate)} Shift ${shift} Line ${line} SPO ${spo} ${prcs.join(', ')} Size ${size} tidak ditemukan.`,
     );
   }
 
@@ -440,5 +440,5 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
     sheet.getRangeList(ranges).setValue(currentValue + actualValue);
   }
   lap('set value');
-  Logger.log(`Waktu Total: ${Date.now() - startExecution} ms`);
+  console.log(`Waktu Total: ${Date.now() - startExecution} ms`);
 }

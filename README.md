@@ -85,10 +85,23 @@ Project development dan production memakai Script ID berbeda, sehingga masing-ma
 | `DATABASE_SPREADSHEET_ID`   | Database (Operator, Target, Output, SPO dan Size) |
 | `LKH_SPREADSHEET_ID`        | LKH (Dirbon, TPR, Daftar SPOPRC)                  |
 | `TPR_DIRBON_SPREADSHEET_ID` | Kanban TPR/Dirbon                                 |
+| `LOGGING_SPREADSHEET_ID`    | Log Error (error server)                          |
 
-Buka **Project Settings > Script Properties** pada tiap project Apps Script dan isi ketiga property tersebut. ID di `server/constants.ts` hanyalah fallback jika property belum diisi, jadi jangan biarkan satu project pun kosong agar environment tidak ambigu. Script Properties tidak ikut terkirim oleh `clasp push` dan tidak berpindah antar project.
+Buka **Project Settings > Script Properties** pada tiap project Apps Script dan isi keempat property tersebut. ID di `server/constants.ts` hanyalah fallback jika property belum diisi, jadi jangan biarkan satu project pun kosong agar environment tidak ambigu. Script Properties tidak ikut terkirim oleh `clasp push` dan tidak berpindah antar project.
 
-Setelah push, jalankan `checkSpreadsheetEnvironment` dari editor Apps Script dan periksa log: pastikan ketiga ID sesuai dengan spreadsheet yang diharapkan untuk project tersebut.
+Setelah push, jalankan `checkSpreadsheetEnvironment` dari editor Apps Script dan periksa log: pastikan keempat ID sesuai dengan spreadsheet yang diharapkan untuk project tersebut.
+
+## Log error production
+
+`Logger.log` hanya nyaman dibaca di editor dan tidak selalu muncul untuk eksekusi web app production, terutama saat deployment memakai akses `ANYONE_ANONYMOUS`. Karena itu error server dicatat ke sheet **Log Error** pada spreadsheet logging terpisah:
+
+- Sheet dibuat otomatis saat error pertama. Kolomnya: `Timestamp`, `Level`, `Source`, `Function`, `Message`, `Stack`, `User Key`.
+- Error backend pada fungsi API dicatat lewat wrapper `withErrorLogging_` di `server/logging.ts`. Bungkus fungsi API baru dengan wrapper tersebut.
+- Error frontend tidak dicatat ke sheet. Error tetap terlihat di console browser dan toast; `runGas` tidak diubah, jadi error dari `google.script.run` hanya diteruskan ke pemanggil.
+- `User Key` berasal dari `Session.getTemporaryActiveUserKey()`, bukan email, supaya data pribadi tidak ikut tersimpan.
+- `console.error` tetap dipakai sebagai backup. Log tersebut bisa dibaca di Cloud Logging jika project production ditautkan ke Google Cloud project.
+
+Jangan menghapus sheet **Log Error** dari spreadsheet logging. Jika ukurannya sudah besar, arsipkan baris lama secara berkala. Setelah `pnpm push`, jalankan `checkErrorLog` dari editor Apps Script untuk memastikan sheet tersebut bisa dibuat dan ditulis. Sheet dibuat otomatis saat error pertama, jadi sebelum itu `checkSpreadsheetEnvironment` bisa melaporkan sheet tersebut belum ada—itu normal.
 
 ## Menulis backend
 
@@ -134,7 +147,7 @@ Type query tersebut hanya dipakai compiler dan tidak menghasilkan import JavaScr
 API contoh saat ini adalah `getProducts(): Product[]`, yang mengembalikan data contoh tanpa menyimpan data. Untuk menambah API:
 
 1. Tambahkan signature pada `GasFunctions` di `shared/contracts.d.ts`.
-2. Implementasikan fungsi global dengan nama yang sama di `server/`. Gunakan `Parameters<GasFunctions['namaFungsi']>` dan `ReturnType<GasFunctions['namaFungsi']>` untuk menyelaraskan argumen dan respons bila diperlukan.
+2. Implementasikan fungsi global dengan nama yang sama di `server/`. Bungkus badan fungsi dengan `withErrorLogging_('namaFungsi', () => ...)` agar error tercatat di sheet **Log Error**. Gunakan `Parameters<GasFunctions['namaFungsi']>` dan `ReturnType<GasFunctions['namaFungsi']>` untuk menyelaraskan argumen dan respons bila diperlukan.
 3. Tambahkan implementasi mock dengan signature sama di `src/lib/gas.mock.ts`.
 4. Panggil dari React:
 
