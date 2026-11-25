@@ -18,11 +18,11 @@ export default function EditDialog() {
         }
       >
         <TablePropertiesIcon />
-        Edit Data
+        Edit Target & Output
       </DialogTrigger>
       <DialogContent className="sm:max-w-[calc(100%-2rem)] lg:max-w-7xl min-w-0">
         <DialogHeader>
-          <DialogTitle>Edit Data</DialogTitle>
+          <DialogTitle>Edit Target & Output</DialogTitle>
         </DialogHeader>
         <EditContent />
       </DialogContent>

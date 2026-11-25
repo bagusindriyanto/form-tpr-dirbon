@@ -3,6 +3,7 @@ import type { Leader, Operator } from '../../shared/contracts';
 import type { StyleGroup } from '@/types/style';
 import type { Shift, Target } from '@/types/target';
 import { DIRBON_LINES, TPR_LINES } from '@/constants/lines';
+import { SIZES } from './size';
 
 function formatDate(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -65,8 +66,10 @@ export const createTargets = (
       style: style.style,
       prcs,
       parts: prcs.map((prc) => style.parts[prc]),
+      size: faker.helpers.arrayElement(SIZES),
+      molding: faker.number.int({ min: 1, max: 10 }),
       manPower: selectedOperators.length,
-      workingHour: faker.number.int({ min: 1, max: 11 }),
+      workingHour: faker.number.int({ min: 1, max: 10 }),
       leader: faker.helpers.arrayElement(leaders).nip,
       operators: selectedOperators.map((operator) => operator.nip),
       target: faker.number.int({ min: 100, max: 1000 }),

@@ -18,9 +18,9 @@ function App() {
         <Separator className="my-2" />
         <CardContent className="px-0 flex flex-col gap-3">
           <TargetFormDialog />
-          <EditDialog />
           <OutputFormDialog />
           <ProblemFormDialog />
+          <EditDialog />
           <ProblemListDialog />
         </CardContent>
       </Card>

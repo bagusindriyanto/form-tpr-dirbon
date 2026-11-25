@@ -1,4 +1,7 @@
-type OutputKey = Pick<OutputFormData, 'line' | 'shift' | 'spo' | 'prcs'>;
+type OutputKey = Pick<
+  OutputFormData,
+  'line' | 'shift' | 'spo' | 'prcs' | 'size'
+>;
 
 type MatchedTarget = {
   timestamp: Date;
@@ -9,6 +12,8 @@ type MatchedTarget = {
   style: string;
   prcs: string[];
   parts: string[];
+  size: string;
+  molding: number;
   mp: number;
   jk: number;
   leader: Leader['name'];

@@ -30,6 +30,7 @@ import LeaderCombobox from './LeaderCombobox';
 import OperatorCombobox from './OperatorCombobox';
 import FormCombobox from './FormCombobox';
 import { useGetStyles } from '@/api/getStyles';
+import { useGetSizes } from '@/api/getSizes';
 import {
   InputGroup,
   InputGroupAddon,
@@ -69,6 +70,14 @@ const formSchema = z.object({
         seen.add(prc);
       });
     }),
+  size: z
+    .string()
+    .min(1, 'Size wajib diisi.')
+    .transform((value) => value.trim().toUpperCase()),
+  molding: z
+    .number({ error: 'Isi molding wajib diisi.' })
+    .int('Isi molding harus bilangan bulat.')
+    .min(1, 'Isi molding minimal 1.'),
   workingHour: z
     .number({ error: 'Jam kerja wajib diisi.' })
     .int('Jam kerja harus bilangan bulat.')
@@ -99,6 +108,11 @@ export default function TargetForm() {
     isFetching: isStylesFetching,
     refetch: refetchStyles,
   } = useGetStyles();
+  const {
+    data: sizeGroup,
+    isPending: isSizesPending,
+    isError: isSizesError,
+  } = useGetSizes();
   const { mutateAsync, isPending } = useAddTarget();
 
   const form = useForm<FormValues>({
@@ -107,6 +121,8 @@ export default function TargetForm() {
       line: '',
       spo: '',
       prcs: [{ prc: '' }],
+      size: '',
+      molding: undefined,
       shift: undefined,
       workingHour: undefined,
       leader: '',
@@ -130,6 +146,7 @@ export default function TargetForm() {
   const prcOptions = selectedSpo
     ? Object.keys(styleGroup?.[selectedSpo]?.parts ?? {}).sort(comparePrc)
     : [];
+  const sizeOptions = sizeGroup?.[selectedSpo] ?? [];
   const selectedPrcValues = new Set(
     (selectedPrcs ?? []).map(({ prc }) => prc).filter(Boolean),
   );
@@ -455,6 +472,85 @@ export default function TargetForm() {
                 </Button>
               </FieldGroup>
             </FieldSet>
+
+            <div className="grid grid-cols-[1fr_2fr] gap-2">
+              <Controller
+                name="size"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${formId}-${field.name}`}>
+                      Size
+                    </FieldLabel>
+                    {sizeOptions.length === 0 ? (
+                      <Input
+                        {...field}
+                        id={`${formId}-${field.name}`}
+                        value={field.value}
+                        onChange={(event) =>
+                          field.onChange(event.target.value.toUpperCase())
+                        }
+                        className="uppercase placeholder:normal-case"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Ketik size"
+
+                        disabled={!selectedSpo}
+                        autoComplete="off"
+                      />
+                    ) : (
+                      <FormCombobox
+                        id={`${formId}-${field.name}`}
+                        placeholder="Contoh: S, M, L, XL"
+                        items={[...sizeOptions, 'ALL SIZE']}
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        aria-invalid={fieldState.invalid}
+                        disabled={!selectedSpo}
+                        isPending={isSizesPending}
+                        isError={isSizesError}
+                      />
+                    )}
+
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="molding"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={`${formId}-${field.name}`}>
+                      Isi Molding
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id={`${formId}-${field.name}`}
+                      value={field.value ?? ''}
+                      onChange={(event) => {
+                        const value = event.target.valueAsNumber;
+                        field.onChange(Number.isNaN(value) ? undefined : value);
+                      }}
+                      type="number"
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      placeholder="Ketik isi molding, contoh: 2"
+                      autoComplete="off"
+                      aria-invalid={fieldState.invalid}
+                      disabled={!selectedSpo}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
 
             <Controller
               name="leader"

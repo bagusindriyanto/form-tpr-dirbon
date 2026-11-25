@@ -42,7 +42,7 @@ import type { OutputFormData } from '../../shared/contracts';
 const formSchema = z.object({
   line: z.string().min(1, 'Pilih satu line.'),
   shift: z.enum(['1', '2'], { error: 'Pilih salah satu shift.' }),
-  type: z.enum(['SPO', 'GR'], { error: 'Pilih SPO atau GR.' }),
+  // type: z.enum(['SPO', 'GR'], { error: 'Pilih SPO atau GR.' }),
   spo: z.string().min(1, 'SPO wajib diisi.'),
   prcs: z
     .array(
@@ -124,7 +124,7 @@ export default function OutputForm() {
       spo: '',
       prcs: [{ prc: '' }],
       size: '',
-      type: undefined,
+      // type: undefined,
       shift: undefined,
       hour: undefined,
       actual: undefined,
@@ -268,7 +268,7 @@ export default function OutputForm() {
               )}
             />
 
-            <Controller
+            {/* <Controller
               name="type"
               control={form.control}
               render={({ field, fieldState }) => (
@@ -300,7 +300,7 @@ export default function OutputForm() {
                   )}
                 </Field>
               )}
-            />
+            /> */}
 
             <div className="grid grid-cols-[1fr_2fr] gap-2">
               <Controller
@@ -503,6 +503,7 @@ export default function OutputForm() {
                           : 'Ketik size secara manual'
                       }
                       disabled={!selectedSpo}
+                      autoComplete="off"
                     />
                   ) : (
                     <FormCombobox

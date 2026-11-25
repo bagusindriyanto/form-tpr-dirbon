@@ -34,7 +34,9 @@ function getMembersFromSheet(): { leaders: Leader[]; operators: Operator[] } {
 // Dipakai saat menyusun blok LKH. Cache singkat mengurangi waktu baca sheet
 // dan memperpendek masa ScriptLock.
 function getMembers(): ReturnType<GasFunctions['getMembers']> {
-  return getOrSetCache('members', getMembersFromSheet, { ttl: 10 * 60 });
+  return withErrorLogging_('getMembers', () =>
+    getOrSetCache('members', getMembersFromSheet, { ttl: 10 * 60 }),
+  );
 }
 
 function getStylesFromSheet(): StyleGroup {
@@ -76,7 +78,9 @@ function getStylesFromSheet(): StyleGroup {
 }
 
 function getStyles(): ReturnType<GasFunctions['getStyles']> {
-  return getOrSetCache('styles', getStylesFromSheet, { ttl: 6 * 60 * 60 });
+  return withErrorLogging_('getStyles', () =>
+    getOrSetCache('styles', getStylesFromSheet, { ttl: 6 * 60 * 60 }),
+  );
 }
 
 function getSizesFromSheet(): SizeGroup {
@@ -115,36 +119,40 @@ function getSizesFromSheet(): SizeGroup {
 }
 
 function getSizes(): ReturnType<GasFunctions['getSizes']> {
-  return getOrSetCache('sizes', getSizesFromSheet, { ttl: 6 * 60 * 60 });
+  return withErrorLogging_('getSizes', () =>
+    getOrSetCache('sizes', getSizesFromSheet, { ttl: 6 * 60 * 60 }),
+  );
 }
 
 function getProblems(): ReturnType<GasFunctions['getProblems']> {
-  const {
-    tprDirbon: { spreadsheetId, sheetNames },
-  } = SPREADSHEET_CONFIG;
-  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-  const sheet = spreadsheet.getSheetByName(sheetNames.kanban);
-  if (!sheet) throw new Error(`Sheet '${sheetNames.kanban}' tidak ditemukan`);
+  return withErrorLogging_('getProblems', () => {
+    const {
+      tprDirbon: { spreadsheetId, sheetNames },
+    } = SPREADSHEET_CONFIG;
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(sheetNames.kanban);
+    if (!sheet) throw new Error(`Sheet '${sheetNames.kanban}' tidak ditemukan`);
 
-  const [, ...data]: CellValue[][] = sheet.getDataRange().getValues();
-  const problems: Problem[] = [];
+    const [, ...data]: CellValue[][] = sheet.getDataRange().getValues();
+    const problems: Problem[] = [];
 
-  data.forEach((row, index) => {
-    const timestamp = toDateTimeString(row[0]);
-    const line = toString(row[1]);
-    const problem = toString(row[2]);
-    const pic = toString(row[3]) as PIC;
-    const start = toDateTimeString(row[4]);
-    const finish = toDateTimeString(row[5]);
-    const id = toNumber(row[7]);
-    const rowNumber = index + 2;
+    data.forEach((row, index) => {
+      const timestamp = toDateTimeString(row[0]);
+      const line = toString(row[1]);
+      const problem = toString(row[2]);
+      const pic = toString(row[3]) as PIC;
+      const start = toDateTimeString(row[4]);
+      const finish = toDateTimeString(row[5]);
+      const id = toNumber(row[7]);
+      const rowNumber = index + 2;
 
-    if (!finish) {
-      problems.push({ id, timestamp, line, problem, pic, start, rowNumber });
-    }
+      if (!finish) {
+        problems.push({ id, timestamp, line, problem, pic, start, rowNumber });
+      }
+    });
+
+    return problems;
   });
-
-  return problems;
 }
 
 function getTargets(): ReturnType<GasFunctions['getTargets']> {
@@ -160,7 +168,7 @@ function getTargets(): ReturnType<GasFunctions['getTargets']> {
     const createdAt = toDateTimeString(row[0]);
     const line = toString(row[2]);
     const spo = toString(row[4]);
-    const target = toNumber(row[12]);
+    const target = toNumber(row[14]);
 
     // Kolom B dan N berisi formula, jadi getDataRange ikut membaca baris
     // kosong di bawah data. Baris tanpa isi tidak perlu ditampilkan di grid.
@@ -175,12 +183,14 @@ function getTargets(): ReturnType<GasFunctions['getTargets']> {
       style: toString(row[5]),
       prcs: splitCellList(row[6]),
       parts: splitCellList(row[7]),
-      manPower: toNumber(row[8]),
-      workingHour: toNumber(row[9]),
-      leader: toString(row[10]),
-      operators: splitCellList(row[11]),
+      size: toString(row[8]),
+      molding: toNumber(row[9]),
+      manPower: toNumber(row[10]),
+      workingHour: toNumber(row[11]),
+      leader: toString(row[12]),
+      operators: splitCellList(row[13]),
       target,
-      rowNumber: toNumber(row[13]),
+      rowNumber: toNumber(row[15]),
     });
 
     return result;

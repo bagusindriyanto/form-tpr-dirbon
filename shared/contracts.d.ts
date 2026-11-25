@@ -45,6 +45,8 @@ export type Target = {
   style: string;
   prcs: string[];
   parts: string[];
+  size: string;
+  molding: number;
   manPower: number;
   workingHour: number;
   leader: Leader['nip'];
@@ -70,7 +72,7 @@ export type TargetFormData = Omit<
 export type OutputFormData = {
   line: string;
   shift: Shift;
-  type: OutputType;
+  // type: OutputType;
   spo: string;
   style: string;
   prcs: string[];
@@ -93,15 +95,10 @@ export type UpdateProblemData = {
   action: ProblemAction;
 };
 
-export type TargetEditableField =
-  | 'line'
-  | 'shift'
-  | 'spo'
-  | 'prcs'
-  | 'workingHour'
-  | 'leader'
-  | 'operators'
-  | 'target';
+export type TargetEditableField = Exclude<
+  keyof Target,
+  'createdAt' | 'date' | 'style' | 'parts' | 'manPower' | 'rowNumber'
+>;
 
 export type TargetCellChange = {
   rowNumber: number;

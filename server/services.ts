@@ -95,7 +95,7 @@ function withScriptLock<T>(callback: () => T): T {
   const requestedAt = Date.now();
 
   if (!lock.tryLock(SCRIPT_LOCK_TIMEOUT_MS)) {
-    Logger.log(
+    console.error(
       `ScriptLock gagal didapat setelah ${SCRIPT_LOCK_TIMEOUT_MS} ms. ` +
         'Proses dibatalkan agar data tidak bentrok.',
     );
@@ -106,13 +106,13 @@ function withScriptLock<T>(callback: () => T): T {
 
   const waitMs = Date.now() - requestedAt;
   if (waitMs >= SCRIPT_LOCK_WAIT_LOG_MS) {
-    Logger.log(`ScriptLock didapat setelah menunggu ${waitMs} ms.`);
+    console.log(`ScriptLock didapat setelah menunggu ${waitMs} ms.`);
   }
 
   try {
     return callback();
   } catch (error) {
-    Logger.log(`Proses gagal: ${errorMessage(error)}`);
+    console.error(`Proses gagal: ${errorMessage(error)}`);
     throw error;
   } finally {
     // Pastikan perubahan tertulis sebelum lock dilepas, supaya pemegang lock
@@ -120,7 +120,9 @@ function withScriptLock<T>(callback: () => T): T {
     try {
       SpreadsheetApp.flush();
     } catch (error) {
-      Logger.log(`Gagal flush perubahan spreadsheet: ${errorMessage(error)}`);
+      console.error(
+        `Gagal flush perubahan spreadsheet: ${errorMessage(error)}`,
+      );
     }
     lock.releaseLock();
   }

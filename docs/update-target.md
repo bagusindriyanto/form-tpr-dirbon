@@ -65,22 +65,22 @@ flowchart LR
 
 ## Peta File
 
-| File | Peran |
-| --- | --- |
-| `shared/contracts.d.ts` | Sumber tipe kontrak bersama frontend/backend. |
-| `src/types/target.ts` | Re-export tipe target untuk frontend. |
-| `src/types/style.ts` | Re-export `Style` dan `StyleGroup`. |
-| `src/lib/targetChanges.ts` | Helper murni untuk staging dan preview perubahan. |
-| `src/api/updateTarget.ts` | Hook React Query untuk mutation `updateTarget`. |
-| `src/api/getTargets.ts` | Query data target. |
-| `src/api/queryKeys.ts` | Konstanta query key, termasuk `TARGETS_QUERY_KEY`. |
+| File                                | Peran                                                                |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| `shared/contracts.d.ts`             | Sumber tipe kontrak bersama frontend/backend.                        |
+| `src/types/target.ts`               | Re-export tipe target untuk frontend.                                |
+| `src/types/style.ts`                | Re-export `Style` dan `StyleGroup`.                                  |
+| `src/lib/targetChanges.ts`          | Helper murni untuk staging dan preview perubahan.                    |
+| `src/api/updateTarget.ts`           | Hook React Query untuk mutation `updateTarget`.                      |
+| `src/api/getTargets.ts`             | Query data target.                                                   |
+| `src/api/queryKeys.ts`              | Konstanta query key, termasuk `TARGETS_QUERY_KEY`.                   |
 | `src/components/TargetDataGrid.tsx` | Grid, state `pendingChanges`, handler edit, dan tombol simpan/batal. |
-| `server/updateData.ts` | Implementasi endpoint batch `updateTarget` dan helper validasi. |
-| `server/getData.ts` | `getStyles()` dan `getTargets()` untuk membaca data pendukung. |
-| `server/services.ts` | `withScriptLock()` untuk serialisasi akses spreadsheet. |
-| `server/utils.ts` | Parser nilai sel: `toString`, `toNumber`, `splitCellList`. |
-| `src/lib/gas.mock.ts` | Mock development untuk `updateTarget`. |
-| `src/mocks/target.ts` | Generator data target untuk mock. |
+| `server/updateData.ts`              | Implementasi endpoint batch `updateTarget` dan helper validasi.      |
+| `server/getData.ts`                 | `getStyles()` dan `getTargets()` untuk membaca data pendukung.       |
+| `server/services.ts`                | `withScriptLock()` untuk serialisasi akses spreadsheet.              |
+| `server/utils.ts`                   | Parser nilai sel: `toString`, `toNumber`, `splitCellList`.           |
+| `src/lib/gas.mock.ts`               | Mock development untuk `updateTarget`.                               |
+| `src/mocks/target.ts`               | Generator data target untuk mock.                                    |
 
 ---
 
@@ -117,22 +117,22 @@ export type Target = {
 
 Satu baris data target. `rowNumber` adalah identitas baris di grid (`getRowId`) dan juga nomor baris aktual di sheet.
 
-| Field | Tipe | Asal | Bisa diedit? |
-| --- | --- | --- | --- |
-| `createdAt` | `string` | Kolom A | Tidak |
-| `date` | `string` | Kolom B (formula) | Tidak |
-| `line` | `string` | Kolom C | Ya |
-| `shift` | `Shift` | Kolom D | Ya |
-| `spo` | `string` | Kolom E | Ya |
-| `style` | `string` | Kolom F (turunan dari SPO) | Tidak |
-| `prcs` | `string[]` | Kolom G | Ya |
-| `parts` | `string[]` | Kolom H (turunan dari PRC) | Tidak |
-| `manPower` | `number` | Kolom I (turunan dari operator) | Tidak |
-| `workingHour` | `number` | Kolom J | Ya |
-| `leader` | `string` (NIP) | Kolom K | Ya |
-| `operators` | `string[]` (NIP) | Kolom L | Ya |
-| `target` | `number` | Kolom M | Ya |
-| `rowNumber` | `number` | Kolom N (formula `=ROW()`) | Tidak |
+| Field         | Tipe             | Asal                            | Bisa diedit? |
+| ------------- | ---------------- | ------------------------------- | ------------ |
+| `createdAt`   | `string`         | Kolom A                         | Tidak        |
+| `date`        | `string`         | Kolom B (formula)               | Tidak        |
+| `line`        | `string`         | Kolom C                         | Ya           |
+| `shift`       | `Shift`          | Kolom D                         | Ya           |
+| `spo`         | `string`         | Kolom E                         | Ya           |
+| `style`       | `string`         | Kolom F (turunan dari SPO)      | Tidak        |
+| `prcs`        | `string[]`       | Kolom G                         | Ya           |
+| `parts`       | `string[]`       | Kolom H (turunan dari PRC)      | Tidak        |
+| `manPower`    | `number`         | Kolom I (turunan dari operator) | Tidak        |
+| `workingHour` | `number`         | Kolom J                         | Ya           |
+| `leader`      | `string` (NIP)   | Kolom K                         | Ya           |
+| `operators`   | `string[]` (NIP) | Kolom L                         | Ya           |
+| `target`      | `number`         | Kolom M                         | Ya           |
+| `rowNumber`   | `number`         | Kolom N (formula `=ROW()`)      | Tidak        |
 
 ### `Style` dan `StyleGroup`
 
@@ -239,6 +239,8 @@ type TargetSheetRow = {
   style: string;
   prcs: string[];
   parts: string[];
+  size: string;
+  molding: number;
   manPower: number;
   workingHour: number;
   leader: string;
@@ -278,11 +280,7 @@ export interface DataGridCellRejection {
 }
 
 export type DataGridCellsChangeSource =
-  | 'paste'
-  | 'cut'
-  | 'clear'
-  | 'fill'
-  | 'edit';
+  'paste' | 'cut' | 'clear' | 'fill' | 'edit';
 
 export interface DataGridCellsChangeDetails<TData> {
   source: DataGridCellsChangeSource;
@@ -319,7 +317,7 @@ Menjalankan fungsi backend melalui `google.script.run`. Jika bridge tidak tersed
 Untuk update:
 
 ```ts
-runGas('updateTarget', { changes })
+runGas('updateTarget', { changes });
 ```
 
 Mengembalikan `Promise<{ updated: number }>`.
@@ -360,7 +358,7 @@ export const targetChangeKey = (change: TargetCellChange) => string;
 Menghasilkan kunci unik per sel:
 
 ```ts
-`${change.rowNumber}:${change.field}`
+`${change.rowNumber}:${change.field}`;
 ```
 
 Contoh: `2:spo`, `2:prcs`, `5:operators`.
@@ -410,16 +408,16 @@ Langkah:
 
 Pemetaan field:
 
-| Field | Efek |
-| --- | --- |
-| `line` | Trim string. |
-| `shift` | Cast ke `Shift`. |
-| `spo` | Trim string. |
-| `prcs` | `toTargetList`, lalu difilter terhadap style baru. |
-| `workingHour` | `Number(value)`. |
-| `leader` | Trim string. |
-| `operators` | `toTargetList`, lalu `manPower` dihitung ulang. |
-| `target` | `Number(value)`. |
+| Field         | Efek                                               |
+| ------------- | -------------------------------------------------- |
+| `line`        | Trim string.                                       |
+| `shift`       | Cast ke `Shift`.                                   |
+| `spo`         | Trim string.                                       |
+| `prcs`        | `toTargetList`, lalu difilter terhadap style baru. |
+| `workingHour` | `Number(value)`.                                   |
+| `leader`      | Trim string.                                       |
+| `operators`   | `toTargetList`, lalu `manPower` dihitung ulang.    |
+| `target`      | `Number(value)`.                                   |
 
 ### `mergeTargetChanges`
 
@@ -461,20 +459,20 @@ Komponen utama yang menggabungkan query data, staging lokal, editor sel, dan tom
 
 State/ref penting:
 
-| Nama | Tipe | Nilai awal | Fungsi |
-| --- | --- | --- | --- |
-| `targets` | `Target[]` | `[]` | Data target dari `useGetTargets()`. |
-| `styleGroup` | `StyleGroup \| undefined` | dari query | Preview style/parts dan filter PRC. |
-| `pendingChanges` | `TargetCellChange[]` | `[]` | Antrean perubahan lokal. |
-| `rows` | `Target[]` | hasil memo | `applyTargetChanges(targets, pendingChanges, styleGroup)`. |
-| `dirtyRows` | `Set<number>` | hasil memo | Kumpulan `rowNumber` yang punya perubahan lokal. |
-| `dirtyCells` | `Set<string>` | hasil memo | Kumpulan kunci `rowNumber:field` untuk penanda sudut sel. |
-| `isSaving` | `boolean` | `false` | Alias dari `isPending` mutation. |
-| `saveLockRef` | `boolean` | `false` | Mencegah double submit sebelum render berikutnya. |
-| `queryClient` | `QueryClient` | dari provider | Untuk `setQueryData` dan `invalidateQueries`. |
-| `pagination` | `PaginationState` | halaman 0, size 10 | State pagination grid. |
-| `sorting` | `SortingState` | `[]` | State sorting grid. |
-| `columnPinning` | `ColumnPinningState` | `date` kiri, `target` kanan | State pin kolom. |
+| Nama             | Tipe                      | Nilai awal                  | Fungsi                                                     |
+| ---------------- | ------------------------- | --------------------------- | ---------------------------------------------------------- |
+| `targets`        | `Target[]`                | `[]`                        | Data target dari `useGetTargets()`.                        |
+| `styleGroup`     | `StyleGroup \| undefined` | dari query                  | Preview style/parts dan filter PRC.                        |
+| `pendingChanges` | `TargetCellChange[]`      | `[]`                        | Antrean perubahan lokal.                                   |
+| `rows`           | `Target[]`                | hasil memo                  | `applyTargetChanges(targets, pendingChanges, styleGroup)`. |
+| `dirtyRows`      | `Set<number>`             | hasil memo                  | Kumpulan `rowNumber` yang punya perubahan lokal.           |
+| `dirtyCells`     | `Set<string>`             | hasil memo                  | Kumpulan kunci `rowNumber:field` untuk penanda sudut sel.  |
+| `isSaving`       | `boolean`                 | `false`                     | Alias dari `isPending` mutation.                           |
+| `saveLockRef`    | `boolean`                 | `false`                     | Mencegah double submit sebelum render berikutnya.          |
+| `queryClient`    | `QueryClient`             | dari provider               | Untuk `setQueryData` dan `invalidateQueries`.              |
+| `pagination`     | `PaginationState`         | halaman 0, size 10          | State pagination grid.                                     |
+| `sorting`        | `SortingState`            | `[]`                        | State sorting grid.                                        |
+| `columnPinning`  | `ColumnPinningState`      | `date` kiri, `target` kanan | State pin kolom.                                           |
 
 Data grid memakai `rows`, bukan `targets`, sehingga perubahan lokal langsung terlihat tanpa request.
 
@@ -839,9 +837,7 @@ Query key untuk cache target. Dipakai oleh:
 ### `updateTarget`
 
 ```ts
-function updateTarget({
-  changes,
-}: UpdateTargetData): { updated: number };
+function updateTarget({ changes }: UpdateTargetData): { updated: number };
 ```
 
 Endpoint batch utama.
@@ -854,7 +850,7 @@ Alur:
 4. Ambil `lastRow`, `getStyles()`, dan kelompokkan changes per `rowNumber`.
 5. Untuk setiap baris:
    - Validasi `rowNumber` integer dan berada di rentang `2..lastRow`.
-   - Baca C:M.
+   - Baca C:O.
    - `readTargetSheetRow`.
    - Terapkan setiap perubahan lewat `applyTargetCellChange_`.
    - Validasi hasil akhir baris.
@@ -862,7 +858,7 @@ Alur:
    - Pastikan semua PRC valid.
    - Hitung ulang `style`, `parts`, dan `manPower`.
    - Simpan nilai final ke daftar `writes`.
-6. Setelah **semua** baris valid dan dihitung, baru tulis C:M per baris.
+6. Setelah **semua** baris valid dan dihitung, baru tulis C:O per baris.
 7. Return `{ updated: byRow.size }`.
 
 Karena validasi dan perhitungan dilakukan sebelum penulisan, satu request batch tidak meninggalkan baris setengah jadi jika ada nilai invalid.
@@ -878,24 +874,22 @@ function applyTargetCellChange_(
 
 Menerapkan satu perubahan ke `TargetSheetRow` di memori dan melakukan validasi field.
 
-| Field | Perilaku |
-| --- | --- |
-| `line` | Trim; wajib tidak kosong. |
-| `shift` | Harus `'1'` atau `'2'`. |
-| `spo` | Trim; wajib tidak kosong. |
-| `prcs` | `targetCellList_`; validasi minimal satu PRC dilakukan setelah semua perubahan baris. |
-| `workingHour` | `targetCellInteger_`; harus integer 1..11. |
-| `leader` | Trim; wajib tidak kosong. |
-| `operators` | `targetCellList_`; boleh kosong. |
-| `target` | `targetCellInteger_`; harus integer minimal 1. |
-| lainnya | Throw `Field target tidak dikenal`. |
+| Field         | Perilaku                                                                              |
+| ------------- | ------------------------------------------------------------------------------------- |
+| `line`        | Trim; wajib tidak kosong.                                                             |
+| `shift`       | Harus `'1'` atau `'2'`.                                                               |
+| `spo`         | Trim; wajib tidak kosong.                                                             |
+| `prcs`        | `targetCellList_`; validasi minimal satu PRC dilakukan setelah semua perubahan baris. |
+| `workingHour` | `targetCellInteger_`; harus integer 1..10.                                            |
+| `leader`      | Trim; wajib tidak kosong.                                                             |
+| `operators`   | `targetCellList_`; boleh kosong.                                                      |
+| `target`      | `targetCellInteger_`; harus integer minimal 1.                                        |
+| lainnya       | Throw `Field target tidak dikenal`.                                                   |
 
 ### `targetCellList_`
 
 ```ts
-function targetCellList_(
-  value: TargetCellChange['value'],
-): string[];
+function targetCellList_(value: TargetCellChange['value']): string[];
 ```
 
 Mengubah nilai array atau string berkoma menjadi `string[]` yang sudah di-trim dan bebas item kosong. Dipakai untuk `prcs` dan `operators` di server.
@@ -923,21 +917,23 @@ Parser angka untuk `workingHour` dan `target`.
 function readTargetSheetRow(row: CellValue[]): TargetSheetRow;
 ```
 
-Memetakan nilai C:M menjadi `TargetSheetRow`.
+Memetakan nilai C:O menjadi `TargetSheetRow`.
 
-| Index `row` | Kolom sheet | Field |
-| --- | --- | --- |
-| `0` | C | `line` |
-| `1` | D | `shift` |
-| `2` | E | `spo` |
-| `3` | F | `style` |
-| `4` | G | `prcs` |
-| `5` | H | `parts` |
-| `6` | I | `manPower` |
-| `7` | J | `workingHour` |
-| `8` | K | `leader` |
-| `9` | L | `operators` |
-| `10` | M | `target` |
+| Index `row` | Kolom sheet | Field         |
+| ----------- | ----------- | ------------- |
+| `0`         | C           | `line`        |
+| `1`         | D           | `shift`       |
+| `2`         | E           | `spo`         |
+| `3`         | F           | `style`       |
+| `4`         | G           | `prcs`        |
+| `5`         | H           | `parts`       |
+| `6`         | I           | `size`        |
+| `7`         | J           | `molding`     |
+| `8`         | K           | `manPower`    |
+| `9`         | L           | `workingHour` |
+| `10`        | M           | `leader`      |
+| `11`        | N           | `operators`   |
+| `12`        | O           | `target`      |
 
 ### `withScriptLock`
 
@@ -1019,8 +1015,8 @@ function toDateString(value: CellValue): string;
 ### Konstanta Backend
 
 ```ts
-const TARGET_FIRST_COLUMN = 3;   // Kolom C
-const TARGET_COLUMN_COUNT = 11;  // C sampai M
+const TARGET_FIRST_COLUMN = 3; // Kolom C
+const TARGET_COLUMN_COUNT = 13; // C sampai O
 const SCRIPT_LOCK_TIMEOUT_MS = 60_000;
 const SCRIPT_LOCK_WAIT_LOG_MS = 2_000;
 ```
@@ -1049,15 +1045,15 @@ stateDiagram-v2
 
 ### Tabel State
 
-| Tahap | `pendingChanges` | `isSaving` | Badge | Tombol Simpan/Batal | Sumber data grid | Penanda dirty |
-| --- | --- | --- | --- | --- | --- | --- |
-| Bersih | `[]` | `false` | Tidak ada | Disabled | `targets` | Tidak ada |
-| Ada perubahan | `n > 0` | `false` | `n perubahan` | Enabled | `rows = applyTargetChanges(...)` | Tint baris + corner mark sel |
-| Menyimpan | `n > 0` (captured) | `true` | `Menyimpan…` | Disabled | `rows` | Tint baris + corner mark sel |
-| Sukses tanpa edit baru | `[]` | `false` | Tidak ada | Disabled | Cache hasil `setQueryData` lalu refetch | Tidak ada |
-| Sukses dengan edit baru | `m > 0` | `false` | `m perubahan` | Enabled | `rows` dengan pending baru | Tint baris + corner mark untuk pending baru |
-| Gagal | `n > 0` | `false` | `n perubahan` | Enabled | `rows` dengan pending tetap | Tint baris + corner mark sel |
-| Batal | `[]` | `false` | Tidak ada | Disabled | `targets` | Tidak ada |
+| Tahap                   | `pendingChanges`   | `isSaving` | Badge         | Tombol Simpan/Batal | Sumber data grid                        | Penanda dirty                               |
+| ----------------------- | ------------------ | ---------- | ------------- | ------------------- | --------------------------------------- | ------------------------------------------- |
+| Bersih                  | `[]`               | `false`    | Tidak ada     | Disabled            | `targets`                               | Tidak ada                                   |
+| Ada perubahan           | `n > 0`            | `false`    | `n perubahan` | Enabled             | `rows = applyTargetChanges(...)`        | Tint baris + corner mark sel                |
+| Menyimpan               | `n > 0` (captured) | `true`     | `Menyimpan…`  | Disabled            | `rows`                                  | Tint baris + corner mark sel                |
+| Sukses tanpa edit baru  | `[]`               | `false`    | Tidak ada     | Disabled            | Cache hasil `setQueryData` lalu refetch | Tidak ada                                   |
+| Sukses dengan edit baru | `m > 0`            | `false`    | `m perubahan` | Enabled             | `rows` dengan pending baru              | Tint baris + corner mark untuk pending baru |
+| Gagal                   | `n > 0`            | `false`    | `n perubahan` | Enabled             | `rows` dengan pending tetap             | Tint baris + corner mark sel                |
+| Batal                   | `[]`               | `false`    | Tidak ada     | Disabled            | `targets`                               | Tidak ada                                   |
 
 `isSaving` adalah alias dari `isPending` milik mutation React Query.
 
@@ -1202,34 +1198,34 @@ Tidak ada rollback cache karena tidak ada optimistic mutation sebelum request:
 
 ### Tipe Nilai per Field
 
-| Field | Tipe nilai yang dikirim client | Contoh |
-| --- | --- | --- |
-| `line` | `string` | `"D04"` |
-| `shift` | `string` (`"1"`/`"2"`) | `"2"` |
-| `spo` | `string` | `"SPO-1634"` |
-| `prcs` | `string[]` | `["PRC05", "PRC06"]` |
-| `workingHour` | `number` | `6` |
-| `leader` | `string` (NIP) | `"MGM 12071"` |
-| `operators` | `string[]` (NIP) | `["MGM 7490"]` |
-| `target` | `number` | `680` |
+| Field         | Tipe nilai yang dikirim client | Contoh               |
+| ------------- | ------------------------------ | -------------------- |
+| `line`        | `string`                       | `"D04"`              |
+| `shift`       | `string` (`"1"`/`"2"`)         | `"2"`                |
+| `spo`         | `string`                       | `"SPO-1634"`         |
+| `prcs`        | `string[]`                     | `["PRC05", "PRC06"]` |
+| `workingHour` | `number`                       | `6`                  |
+| `leader`      | `string` (NIP)                 | `"MGM 12071"`        |
+| `operators`   | `string[]` (NIP)               | `["MGM 7490"]`       |
+| `target`      | `number`                       | `680`                |
 
 Server juga menerima string berkoma untuk `prcs` dan `operators` melalui `targetCellList_`, tetapi client mengirim array.
 
 ### Validasi Server
 
-| Aturan | Error |
-| --- | --- |
-| `rowNumber` harus integer dan berada di `2..lastRow` | `Row number tidak valid: ...` |
-| `line` tidak boleh kosong | `Line tidak boleh kosong` / `Line baris N kosong` |
-| `shift` harus `'1'` atau `'2'` | `Shift tidak valid: ...` |
-| `spo` tidak boleh kosong | `SPO tidak boleh kosong` |
-| `spo` harus ada di `StyleGroup` | `SPO '...' tidak ditemukan` |
-| `prcs` minimal satu | `Baris N harus punya minimal satu PRC` |
-| Semua PRC harus ada di style SPO | `PRC ... tidak tersedia untuk SPO ...` |
-| `leader` tidak boleh kosong | `Leader tidak boleh kosong` |
-| `workingHour` integer 1..11 | `Jam kerja harus antara 1 dan 11` |
-| `target` integer minimal 1 | `Target minimal 1` |
-| `operators` boleh kosong | Tidak ada error; `manPower` menjadi 0 |
+| Aturan                                               | Error                                             |
+| ---------------------------------------------------- | ------------------------------------------------- |
+| `rowNumber` harus integer dan berada di `2..lastRow` | `Row number tidak valid: ...`                     |
+| `line` tidak boleh kosong                            | `Line tidak boleh kosong` / `Line baris N kosong` |
+| `shift` harus `'1'` atau `'2'`                       | `Shift tidak valid: ...`                          |
+| `spo` tidak boleh kosong                             | `SPO tidak boleh kosong`                          |
+| `spo` harus ada di `StyleGroup`                      | `SPO '...' tidak ditemukan`                       |
+| `prcs` minimal satu                                  | `Baris N harus punya minimal satu PRC`            |
+| Semua PRC harus ada di style SPO                     | `PRC ... tidak tersedia untuk SPO ...`            |
+| `leader` tidak boleh kosong                          | `Leader tidak boleh kosong`                       |
+| `workingHour` integer 1..11                          | `Jam kerja harus antara 1 dan 11`                 |
+| `target` integer minimal 1                           | `Target minimal 1`                                |
+| `operators` boleh kosong                             | Tidak ada error; `manPower` menjadi 0             |
 
 Validasi dilakukan untuk seluruh baris sebelum penulisan dimulai.
 
@@ -1237,22 +1233,22 @@ Validasi dilakukan untuk seluruh baris sebelum penulisan dimulai.
 
 `updateTarget` hanya membaca dan menulis **C:M**:
 
-| Kolom | Field | Ditulis `updateTarget`? |
-| --- | --- | --- |
-| A | `createdAt` | Tidak |
-| B | `date` (formula) | Tidak |
-| C | `line` | Ya |
-| D | `shift` | Ya |
-| E | `spo` | Ya |
-| F | `style` | Ya (hasil hitung ulang) |
-| G | `prcs` | Ya |
-| H | `parts` | Ya (hasil hitung ulang) |
-| I | `manPower` | Ya (hasil hitung ulang) |
-| J | `workingHour` | Ya |
-| K | `leader` | Ya |
-| L | `operators` | Ya |
-| M | `target` | Ya |
-| N | `rowNumber` (formula `=ROW()`) | Tidak |
+| Kolom | Field                          | Ditulis `updateTarget`? |
+| ----- | ------------------------------ | ----------------------- |
+| A     | `createdAt`                    | Tidak                   |
+| B     | `date` (formula)               | Tidak                   |
+| C     | `line`                         | Ya                      |
+| D     | `shift`                        | Ya                      |
+| E     | `spo`                          | Ya                      |
+| F     | `style`                        | Ya (hasil hitung ulang) |
+| G     | `prcs`                         | Ya                      |
+| H     | `parts`                        | Ya (hasil hitung ulang) |
+| I     | `manPower`                     | Ya (hasil hitung ulang) |
+| J     | `workingHour`                  | Ya                      |
+| K     | `leader`                       | Ya                      |
+| L     | `operators`                    | Ya                      |
+| M     | `target`                       | Ya                      |
+| N     | `rowNumber` (formula `=ROW()`) | Tidak                   |
 
 Kolom turunan selalu dihitung ulang dari data final baris, bukan hanya ketika field sumbernya berubah. Ini membuat F/H/I tetap konsisten meskipun data lama diedit dari kolom lain.
 
@@ -1333,64 +1329,64 @@ Skenario runtime yang sudah diverifikasi:
 
 ## Referensi Cepat
 
-| Simbol | Jenis | File |
-| --- | --- | --- |
-| `Shift` | type | `shared/contracts.d.ts` |
-| `Target` | type | `shared/contracts.d.ts` |
-| `TargetFormData` | type terkait `addTarget` | `shared/contracts.d.ts` |
-| `Style`, `StyleGroup` | type | `shared/contracts.d.ts` |
-| `TargetEditableField` | type | `shared/contracts.d.ts` |
-| `TargetCellChange` | type | `shared/contracts.d.ts` |
-| `UpdateTargetData` | type | `shared/contracts.d.ts` |
-| `GasFunctions.updateTarget` | function type | `shared/contracts.d.ts` |
-| `TargetSheetRow` | type | `server/updateData.ts` |
-| `CellValue` | type | `server/types/spreadsheet.d.ts` |
-| `DataGridCellChange` | type eksternal | `src/components/reui/data-grid/data-grid.tsx` |
-| `DataGridCellRejection` | type eksternal | `src/components/reui/data-grid/data-grid.tsx` |
-| `DataGridCellsChangeSource` | type eksternal | `src/components/reui/data-grid/data-grid.tsx` |
-| `DataGridCellsChangeDetails` | type eksternal | `src/components/reui/data-grid/data-grid.tsx` |
-| `DataGridCellEditRequest` | type eksternal | `src/components/reui/data-grid/data-grid.tsx` |
-| `TARGETS_QUERY_KEY` | constant | `src/api/queryKeys.ts` |
-| `STYLES_QUERY_KEY` | constant | `src/api/queryKeys.ts` |
-| `runGas` | function | `src/lib/gas.ts` |
-| `useGetTargets` | hook | `src/api/getTargets.ts` |
-| `useGetStyles` | hook | `src/api/getStyles.ts` |
-| `useUpdateTarget` | hook | `src/api/updateTarget.ts` |
-| `targetChangeKey` | function | `src/lib/targetChanges.ts` |
-| `toTargetList` | function | `src/lib/targetChanges.ts` |
-| `applyTargetChanges` | function | `src/lib/targetChanges.ts` |
-| `mergeTargetChanges` | function | `src/lib/targetChanges.ts` |
-| `TargetDataGrid` | component | `src/components/TargetDataGrid.tsx` |
-| `dirtyRows` | local state | `src/components/TargetDataGrid.tsx` |
-| `dirtyCells` | local state | `src/components/TargetDataGrid.tsx` |
-| `getRowStatus` | ReUI prop | `src/components/reui/data-grid/data-grid.tsx` |
-| `getCellStatus` | ReUI prop | `src/components/reui/data-grid/data-grid.tsx` |
-| `stageChanges` | local function | `src/components/TargetDataGrid.tsx` |
-| `stageField` | local function | `src/components/TargetDataGrid.tsx` |
-| `handleDiscard` | local function | `src/components/TargetDataGrid.tsx` |
-| `handleSave` | local function | `src/components/TargetDataGrid.tsx` |
-| `changeSpo` | local function | `src/components/TargetDataGrid.tsx` |
-| `handleCellsChange` | local function | `src/components/TargetDataGrid.tsx` |
-| `handleCellEditRequest` | local function | `src/components/TargetDataGrid.tsx` |
-| `comparePrc` | local function | `src/components/TargetDataGrid.tsx` |
-| `LineCell` | local component | `src/components/TargetDataGrid.tsx` |
-| `ShiftCell` | local component | `src/components/TargetDataGrid.tsx` |
-| `SpoCell` | local component | `src/components/TargetDataGrid.tsx` |
-| `PrcCell` | local component | `src/components/TargetDataGrid.tsx` |
-| `updateTarget` | server function | `server/updateData.ts` |
-| `applyTargetCellChange_` | server helper | `server/updateData.ts` |
-| `targetCellList_` | server helper | `server/updateData.ts` |
-| `targetCellInteger_` | server helper | `server/updateData.ts` |
-| `readTargetSheetRow` | server helper | `server/updateData.ts` |
-| `withScriptLock` | server helper | `server/services.ts` |
-| `getStylesFromSheet` | server function | `server/getData.ts` |
-| `getStyles` | server function | `server/getData.ts` |
-| `getTargets` | server function | `server/getData.ts` |
-| `toString` | utility | `server/utils.ts` |
-| `toNumber` | utility | `server/utils.ts` |
-| `splitCellList` | utility | `server/utils.ts` |
-| `toDateTimeString` | utility | `server/utils.ts` |
-| `toDateString` | utility | `server/utils.ts` |
-| `gasMock.updateTarget` | mock | `src/lib/gas.mock.ts` |
-| `applyMockChanges` | mock helper | `src/lib/gas.mock.ts` |
-| `toMockList` | mock helper | `src/lib/gas.mock.ts` |
+| Simbol                       | Jenis                    | File                                          |
+| ---------------------------- | ------------------------ | --------------------------------------------- |
+| `Shift`                      | type                     | `shared/contracts.d.ts`                       |
+| `Target`                     | type                     | `shared/contracts.d.ts`                       |
+| `TargetFormData`             | type terkait `addTarget` | `shared/contracts.d.ts`                       |
+| `Style`, `StyleGroup`        | type                     | `shared/contracts.d.ts`                       |
+| `TargetEditableField`        | type                     | `shared/contracts.d.ts`                       |
+| `TargetCellChange`           | type                     | `shared/contracts.d.ts`                       |
+| `UpdateTargetData`           | type                     | `shared/contracts.d.ts`                       |
+| `GasFunctions.updateTarget`  | function type            | `shared/contracts.d.ts`                       |
+| `TargetSheetRow`             | type                     | `server/updateData.ts`                        |
+| `CellValue`                  | type                     | `server/types/spreadsheet.d.ts`               |
+| `DataGridCellChange`         | type eksternal           | `src/components/reui/data-grid/data-grid.tsx` |
+| `DataGridCellRejection`      | type eksternal           | `src/components/reui/data-grid/data-grid.tsx` |
+| `DataGridCellsChangeSource`  | type eksternal           | `src/components/reui/data-grid/data-grid.tsx` |
+| `DataGridCellsChangeDetails` | type eksternal           | `src/components/reui/data-grid/data-grid.tsx` |
+| `DataGridCellEditRequest`    | type eksternal           | `src/components/reui/data-grid/data-grid.tsx` |
+| `TARGETS_QUERY_KEY`          | constant                 | `src/api/queryKeys.ts`                        |
+| `STYLES_QUERY_KEY`           | constant                 | `src/api/queryKeys.ts`                        |
+| `runGas`                     | function                 | `src/lib/gas.ts`                              |
+| `useGetTargets`              | hook                     | `src/api/getTargets.ts`                       |
+| `useGetStyles`               | hook                     | `src/api/getStyles.ts`                        |
+| `useUpdateTarget`            | hook                     | `src/api/updateTarget.ts`                     |
+| `targetChangeKey`            | function                 | `src/lib/targetChanges.ts`                    |
+| `toTargetList`               | function                 | `src/lib/targetChanges.ts`                    |
+| `applyTargetChanges`         | function                 | `src/lib/targetChanges.ts`                    |
+| `mergeTargetChanges`         | function                 | `src/lib/targetChanges.ts`                    |
+| `TargetDataGrid`             | component                | `src/components/TargetDataGrid.tsx`           |
+| `dirtyRows`                  | local state              | `src/components/TargetDataGrid.tsx`           |
+| `dirtyCells`                 | local state              | `src/components/TargetDataGrid.tsx`           |
+| `getRowStatus`               | ReUI prop                | `src/components/reui/data-grid/data-grid.tsx` |
+| `getCellStatus`              | ReUI prop                | `src/components/reui/data-grid/data-grid.tsx` |
+| `stageChanges`               | local function           | `src/components/TargetDataGrid.tsx`           |
+| `stageField`                 | local function           | `src/components/TargetDataGrid.tsx`           |
+| `handleDiscard`              | local function           | `src/components/TargetDataGrid.tsx`           |
+| `handleSave`                 | local function           | `src/components/TargetDataGrid.tsx`           |
+| `changeSpo`                  | local function           | `src/components/TargetDataGrid.tsx`           |
+| `handleCellsChange`          | local function           | `src/components/TargetDataGrid.tsx`           |
+| `handleCellEditRequest`      | local function           | `src/components/TargetDataGrid.tsx`           |
+| `comparePrc`                 | local function           | `src/components/TargetDataGrid.tsx`           |
+| `LineCell`                   | local component          | `src/components/TargetDataGrid.tsx`           |
+| `ShiftCell`                  | local component          | `src/components/TargetDataGrid.tsx`           |
+| `SpoCell`                    | local component          | `src/components/TargetDataGrid.tsx`           |
+| `PrcCell`                    | local component          | `src/components/TargetDataGrid.tsx`           |
+| `updateTarget`               | server function          | `server/updateData.ts`                        |
+| `applyTargetCellChange_`     | server helper            | `server/updateData.ts`                        |
+| `targetCellList_`            | server helper            | `server/updateData.ts`                        |
+| `targetCellInteger_`         | server helper            | `server/updateData.ts`                        |
+| `readTargetSheetRow`         | server helper            | `server/updateData.ts`                        |
+| `withScriptLock`             | server helper            | `server/services.ts`                          |
+| `getStylesFromSheet`         | server function          | `server/getData.ts`                           |
+| `getStyles`                  | server function          | `server/getData.ts`                           |
+| `getTargets`                 | server function          | `server/getData.ts`                           |
+| `toString`                   | utility                  | `server/utils.ts`                             |
+| `toNumber`                   | utility                  | `server/utils.ts`                             |
+| `splitCellList`              | utility                  | `server/utils.ts`                             |
+| `toDateTimeString`           | utility                  | `server/utils.ts`                             |
+| `toDateString`               | utility                  | `server/utils.ts`                             |
+| `gasMock.updateTarget`       | mock                     | `src/lib/gas.mock.ts`                         |
+| `applyMockChanges`           | mock helper              | `src/lib/gas.mock.ts`                         |
+| `toMockList`                 | mock helper              | `src/lib/gas.mock.ts`                         |
