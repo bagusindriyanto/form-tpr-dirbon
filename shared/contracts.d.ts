@@ -67,7 +67,7 @@ export type TargetFormData = Omit<Target, 'date' | 'manPower'>;
 export type OutputFormData = {
   line: string;
   shift: Shift;
-  type: OutputType;
+  // type: OutputType;
   spo: string;
   style: string;
   prcs: string[];

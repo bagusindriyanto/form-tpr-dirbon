@@ -76,7 +76,7 @@ function addOutput(outputFormData: OutputFormData) {
       const {
         line,
         shift,
-        type,
+        // type,
         spo,
         style,
         prcs,
@@ -124,7 +124,7 @@ function addOutput(outputFormData: OutputFormData) {
         )`,
         line,
         shift,
-        type,
+        'SPO',
         spo,
         style,
         `=XLOOKUP(G${nextRow},'Database SPO'!$B$2:$B,'Database SPO'!$C$2:$C, XLOOKUP(F${nextRow},'Database SPO'!$A$2:$A,'Database SPO'!$C$2:$C, "NOT FOUND", 0), 0)`,

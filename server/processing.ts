@@ -340,15 +340,14 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
   const config = LKH_SHEETS[key];
   if (!config) throw new Error(`Konfigurasi LKH '${key}' tidak dikenal`);
 
-  const { line, shift, type, spo, style, prcs, parts, size, hour, actual } =
-    formData;
+  const { line, shift, spo, style, prcs, parts, size, hour, actual } = formData;
 
-  // Validasi jam di awal, gagal cepat sebelum membuka spreadsheet
-  const jam = Number(hour);
-  if (!Number.isInteger(jam) || jam < 1 || jam > 10) {
-    throw new Error(`Jam '${hour}' tidak valid. Harus 1-10`);
-  }
-  const outputColumn = config.outputBase + jam;
+  // // Validasi jam di awal, gagal cepat sebelum membuka spreadsheet
+  // const jam = Number(hour);
+  // if (!Number.isInteger(jam) || jam < 1 || jam > 10) {
+  //   throw new Error(`Jam '${hour}' tidak valid. Harus 1-10`);
+  // }
+  const outputColumn = config.outputBase + hour;
 
   const startExecution = Date.now();
   let t = startExecution;
@@ -379,11 +378,11 @@ function updateLKH(key: Division, formData: OutputFormData, recordDate: Date) {
 
   // Jobs
   const normalizedLine = line.replace(/^([A-Z])0+/, '$1');
-  const jobs = prcs.map((prc, i) => ({
+  const jobs = prcs.map<Job>((prc, i) => ({
     tanggal: recordDate,
     shift,
     line: normalizedLine,
-    type,
+    type: 'SPO',
     spo,
     style,
     prcs: prc,
